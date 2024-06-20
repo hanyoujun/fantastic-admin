@@ -18,7 +18,7 @@ const { switchTo } = useMenu()
     <div v-if="settingsStore.settings.menu.menuMode === 'side' || (settingsStore.mode === 'mobile' && settingsStore.settings.menu.menuMode !== 'single')" class="main-sidebar-container">
       <Logo :show-title="false" class="sidebar-logo" />
       <!-- 侧边栏模式（含主导航） -->
-      <div class="menu flex flex-col of-hidden transition-all">
+      <div class="menu w-full flex flex-col of-hidden transition-all">
         <template v-for="(item, index) in menuStore.allMenus" :key="index">
           <div
             class="menu-item relative transition-all" :class="{
@@ -26,12 +26,12 @@ const { switchTo } = useMenu()
             }"
           >
             <div
-              v-if="item.children && item.children.length !== 0" class="group menu-item-container h-full w-full flex cursor-pointer items-center justify-between gap-1 py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover:(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
+              v-if="item.children && item.children.length !== 0" class="group menu-item-container h-full w-full flex cursor-pointer items-center justify-between gap-1 py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover-(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
                 'text-[var(--g-main-sidebar-menu-active-color)]! bg-[var(--g-main-sidebar-menu-active-bg)]!': index === menuStore.actived,
               }" :title="typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title" @click="switchTo(index)"
             >
               <div class="w-full inline-flex flex-1 flex-col items-center justify-center gap-[2px]">
-                <SvgIcon v-if="item.meta?.icon" :name="item.meta?.icon" :size="20" class="menu-item-container-icon transition-transform group-hover:scale-120" async />
+                <SvgIcon v-if="item.meta?.icon" :name="item.meta?.icon" :size="20" class="menu-item-container-icon transition-transform group-hover-scale-120" async />
                 <span class="w-full flex-1 truncate text-center text-sm transition-height transition-opacity transition-width">
                   {{ typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title }}
                 </span>
