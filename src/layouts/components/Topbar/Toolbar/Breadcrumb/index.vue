@@ -1,32 +1,36 @@
 <script setup lang="ts">
+import useSettingsStore from '@/store/modules/settings'
 import { compile } from 'path-to-regexp'
 import Breadcrumb from '../../../Breadcrumb/index.vue'
 import BreadcrumbItem from '../../../Breadcrumb/item.vue'
-import useSettingsStore from '@/store/modules/settings'
 
 const route = useRoute()
 
 const settingsStore = useSettingsStore()
 
+// 面包屑备份
+let breadcrumbListBackup: any = []
 const breadcrumbList = computed(() => {
-  const breadcrumbList = []
+  if (route.name === 'reload') {
+    return breadcrumbListBackup
+  }
+  const list = []
   if (settingsStore.settings.home.enable) {
-    breadcrumbList.push({
+    list.push({
       path: settingsStore.settings.home.fullPath,
       title: settingsStore.settings.home.title,
     })
   }
-  if (route.meta.breadcrumbNeste) {
-    route.meta.breadcrumbNeste.forEach((item) => {
-      if (item.hide === false) {
-        breadcrumbList.push({
-          path: item.path,
-          title: item.title,
-        })
-      }
-    })
-  }
-  return breadcrumbList
+  route.matched.forEach((item) => {
+    if (item.meta?.breadcrumb !== false) {
+      list.push({
+        path: item.path,
+        title: item.meta?.title,
+      })
+    }
+  })
+  breadcrumbListBackup = list
+  return list
 })
 
 function pathCompile(path: string) {
@@ -45,8 +49,8 @@ function pathCompile(path: string) {
   </Breadcrumb>
 </template>
 
-<style lang="scss" scoped>
-// 面包屑动画
+<style scoped>
+/* 面包屑动画 */
 .breadcrumb-enter-active {
   transition: transform 0.3s, opacity 0.3s;
 }

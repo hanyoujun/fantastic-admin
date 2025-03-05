@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import Logo from '../Logo/index.vue'
-import useSettingsStore from '@/store/modules/settings'
+import { useSlots } from '@/slots'
 import useMenuStore from '@/store/modules/menu'
+import useSettingsStore from '@/store/modules/settings'
+import hotkeys from 'hotkeys-js'
+import Logo from '../Logo/index.vue'
 
 defineOptions({
   name: 'MainSidebar',
@@ -11,49 +13,73 @@ const settingsStore = useSettingsStore()
 const menuStore = useMenuStore()
 
 const { switchTo } = useMenu()
+
+onMounted(() => {
+  hotkeys('alt+`', (e) => {
+    if (settingsStore.settings.menu.enableHotkeys && ['side', 'head'].includes(settingsStore.settings.menu.mode)) {
+      e.preventDefault()
+      switchTo(menuStore.actived + 1 < menuStore.allMenus.length ? menuStore.actived + 1 : 0)
+    }
+  })
+  hotkeys('alt+shift+`', (e) => {
+    if (settingsStore.settings.menu.enableHotkeys && ['side', 'head'].includes(settingsStore.settings.menu.mode)) {
+      e.preventDefault()
+      switchTo(menuStore.actived - 1 >= 0 ? menuStore.actived - 1 : menuStore.allMenus.length - 1)
+    }
+  })
+})
+onUnmounted(() => {
+  hotkeys.unbind('alt+`')
+  hotkeys.unbind('alt+shift+`')
+})
 </script>
 
 <template>
   <Transition name="main-sidebar">
-    <div v-if="settingsStore.settings.menu.menuMode === 'side' || (settingsStore.mode === 'mobile' && settingsStore.settings.menu.menuMode !== 'single')" class="main-sidebar-container">
+    <div v-if="settingsStore.settings.menu.mode === 'side' || (settingsStore.mode === 'mobile' && settingsStore.settings.menu.mode !== 'single')" class="main-sidebar-container">
+      <component :is="useSlots('main-sidebar-top')" />
       <Logo :show-title="false" class="sidebar-logo" />
-      <!-- 侧边栏模式（含主导航） -->
-      <div class="menu w-full flex flex-col of-hidden transition-all">
-        <template v-for="(item, index) in menuStore.allMenus" :key="index">
-          <div
-            class="menu-item relative transition-all" :class="{
-              active: index === menuStore.actived,
-            }"
-          >
+      <component :is="useSlots('main-sidebar-after-logo')" />
+      <FaScrollArea :scrollbar="false" mask gradient-color="var(--g-main-sidebar-bg)" class="menu">
+        <!-- 侧边栏模式（含主导航） -->
+        <div class="w-full flex flex-col of-hidden py-1 transition-all -mt-2">
+          <template v-for="(item, index) in menuStore.allMenus" :key="index">
             <div
-              v-if="item.children && item.children.length !== 0" class="group menu-item-container h-full w-full flex cursor-pointer items-center justify-between gap-1 py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover-(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
-                'text-[var(--g-main-sidebar-menu-active-color)]! bg-[var(--g-main-sidebar-menu-active-bg)]!': index === menuStore.actived,
-              }" :title="typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title" @click="switchTo(index)"
+              class="menu-item relative px-2 py-1 transition-all" :class="{
+                active: index === menuStore.actived,
+              }"
             >
-              <div class="w-full inline-flex flex-1 flex-col items-center justify-center gap-[2px]">
-                <SvgIcon v-if="item.meta?.icon" :name="item.meta?.icon" :size="20" class="menu-item-container-icon transition-transform group-hover-scale-120" async />
-                <span class="w-full flex-1 truncate text-center text-sm transition-height transition-opacity transition-width">
-                  {{ typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title }}
-                </span>
+              <div
+                v-if="item.children && item.children.length !== 0" class="group menu-item-container relative h-full w-full flex cursor-pointer items-center justify-between gap-1 rounded-lg py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover-(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
+                  'text-[var(--g-main-sidebar-menu-active-color)]! bg-[var(--g-main-sidebar-menu-active-bg)]!': index === menuStore.actived,
+                }" :title="typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title" @click="switchTo(index)"
+              >
+                <div class="w-full inline-flex flex-1 flex-col items-center justify-center gap-[2px]">
+                  <FaIcon v-if="item.meta?.icon" :name="item.meta?.icon" class="menu-item-container-icon transition-transform group-hover-scale-120" />
+                  <span class="w-full flex-1 truncate text-center text-sm transition-height transition-opacity transition-width">
+                    {{ typeof item.meta?.title === 'function' ? item.meta?.title() : item.meta?.title }}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </template>
-      </div>
+          </template>
+        </div>
+      </FaScrollArea>
+      <component :is="useSlots('main-sidebar-bottom')" />
     </div>
   </Transition>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .main-sidebar-container {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   width: var(--g-main-sidebar-width);
   color: var(--g-main-sidebar-menu-color);
   background-color: var(--g-main-sidebar-bg);
-  box-shadow: 1px 0 0 0 var(--g-border-color);
+  box-shadow: 1px 0 0 0 hsl(var(--border)), -1px 0 0 0 hsl(var(--border));
   transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
 
   .sidebar-logo {
@@ -63,17 +89,6 @@ const { switchTo } = useMenu()
 
   .menu {
     flex: 1;
-    width: initial;
-    overflow: hidden auto;
-    overscroll-behavior: contain;
-
-    // firefox隐藏滚动条
-    scrollbar-width: none;
-
-    // chrome隐藏滚动条
-    &::-webkit-scrollbar {
-      display: none;
-    }
 
     :deep(.menu-item) {
       .menu-item-container {
@@ -86,7 +101,7 @@ const { switchTo } = useMenu()
         }
 
         .menu-item-container-icon {
-          font-size: 24px !important;
+          font-size: 20px !important;
         }
       }
 
@@ -98,7 +113,7 @@ const { switchTo } = useMenu()
   }
 }
 
-// 主侧边栏动画
+/* 主侧边栏动画 */
 .main-sidebar-enter-active,
 .main-sidebar-leave-active {
   transition: 0.3s;

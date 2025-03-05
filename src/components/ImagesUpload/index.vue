@@ -19,6 +19,7 @@ const props = withDefaults(
     placeholder?: string
     notip?: boolean
     ext?: string[]
+    httpRequest?: UploadProps['httpRequest']
   }>(),
   {
     name: 'file',
@@ -106,17 +107,17 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
       <ElImage v-if="index < max" :src="item" :style="`width:${width}px;height:${height}px;`" fit="cover" />
       <div class="mask">
         <div class="actions">
-          <span title="预览" @click="preview(index)">
-            <SvgIcon name="i-ep:zoom-in" class="icon" />
+          <span @click="preview(index)">
+            <FaIcon name="i-ep:zoom-in" class="icon" />
           </span>
-          <span title="移除" @click="remove(index)">
-            <SvgIcon name="i-ep:delete" class="icon" />
+          <span @click="remove(index)">
+            <FaIcon name="i-ep:delete" class="icon" />
           </span>
-          <span v-show="url.length > 1" title="左移" :class="{ disabled: index === 0 }" @click="move(index, 'left')">
-            <SvgIcon name="i-ep:back" class="icon" />
+          <span v-show="url.length > 1" :class="{ disabled: index === 0 }" @click="move(index, 'left')">
+            <FaIcon name="i-ep:back" class="icon" />
           </span>
-          <span v-show="url.length > 1" title="右移" :class="{ disabled: index === url.length - 1 }" @click="move(index, 'right')">
-            <SvgIcon name="i-ep:right" class="icon" />
+          <span v-show="url.length > 1" :class="{ disabled: index === url.length - 1 }" @click="move(index, 'right')">
+            <FaIcon name="i-ep:right" class="icon" />
           </span>
         </div>
       </div>
@@ -131,11 +132,12 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
       :before-upload="beforeUpload"
       :on-progress="onProgress"
       :on-success="onSuccess"
+      :http-request="httpRequest"
       drag
       class="images-upload"
     >
       <div class="image-slot" :style="`width:${width}px;height:${height}px;`">
-        <SvgIcon name="i-ep:plus" class="icon" />
+        <FaIcon name="i-ep:plus" class="icon" />
       </div>
       <div v-show="uploadData.progress.percent" class="progress" :style="`width:${width}px;height:${height}px;`">
         <ElImage :src="uploadData.progress.preview" :style="`width:${width}px;height:${height}px;`" fit="fill" />
@@ -151,7 +153,7 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .upload-container {
   line-height: initial;
 }
@@ -163,7 +165,7 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
 .images {
   position: relative;
   display: inline-block;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   overflow: hidden;
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
@@ -178,14 +180,16 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
     transition: opacity 0.3s;
 
     .actions {
+      position: absolute;
+      top: 50%;
+      left: 50%;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
       width: 100px;
       height: 100px;
-
-      @include position-center(xy);
+      transform: translateX(-50%) translateY(-50%);
 
       span {
         width: 50%;
@@ -258,9 +262,11 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
       }
 
       .el-progress {
+        position: absolute;
+        top: 50%;
+        left: 50%;
         z-index: 1;
-
-        @include position-center(xy);
+        transform: translateX(-50%) translateY(-50%);
 
         .el-progress__text {
           color: var(--el-text-color-placeholder);

@@ -18,6 +18,7 @@ const props = withDefaults(
     placeholder?: string
     notip?: boolean
     ext?: string[]
+    httpRequest?: UploadProps['httpRequest']
   }>(),
   {
     name: 'file',
@@ -97,13 +98,14 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
       :before-upload="beforeUpload"
       :on-progress="onProgress"
       :on-success="onSuccess"
+      :http-request="httpRequest"
       drag
       class="image-upload"
     >
       <ElImage v-if="url === ''" :src="url === '' ? placeholder : url" :style="`width:${width}px;height:${height}px;`" fit="fill">
         <template #error>
           <div class="image-slot" :style="`width:${width}px;height:${height}px;`">
-            <SvgIcon name="i-ep:plus" class="icon" />
+            <FaIcon name="i-ep:plus" class="icon" />
           </div>
         </template>
       </ElImage>
@@ -111,11 +113,11 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
         <ElImage :src="url" :style="`width:${width}px;height:${height}px;`" fit="fill" />
         <div class="mask">
           <div class="actions">
-            <span title="预览" @click.stop="preview">
-              <SvgIcon name="i-ep:zoom-in" class="icon" />
+            <span @click.stop="preview">
+              <FaIcon name="i-ep:zoom-in" class="icon" />
             </span>
-            <span title="移除" @click.stop="remove">
-              <SvgIcon name="i-ep:delete" class="icon" />
+            <span @click.stop="remove">
+              <FaIcon name="i-ep:delete" class="icon" />
             </span>
           </div>
         </div>
@@ -134,7 +136,7 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .upload-container {
   line-height: initial;
 }
@@ -158,14 +160,16 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
     transition: opacity 0.3s;
 
     .actions {
+      position: absolute;
+      top: 50%;
+      left: 50%;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
       width: 100px;
       height: 100px;
-
-      @include position-center(xy);
+      transform: translateX(-50%) translateY(-50%);
 
       span {
         width: 50%;
@@ -233,9 +237,11 @@ const onSuccess: UploadProps['onSuccess'] = (res) => {
       }
 
       .el-progress {
+        position: absolute;
+        top: 50%;
+        left: 50%;
         z-index: 1;
-
-        @include position-center(xy);
+        transform: translateX(-50%) translateY(-50%);
 
         .el-progress__text {
           color: var(--el-text-color-placeholder);

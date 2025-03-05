@@ -17,6 +17,7 @@ const props = withDefaults(
     files?: UploadUserFile[]
     notip?: boolean
     ext?: string[]
+    httpRequest?: UploadProps['httpRequest']
   }>(),
   {
     name: 'file',
@@ -57,6 +58,29 @@ const onExceed: UploadProps['onExceed'] = () => {
 const onSuccess: UploadProps['onSuccess'] = (res, file, fileList) => {
   emits('onSuccess', res, file, fileList)
 }
+
+const onPreview: UploadProps['onPreview'] = (e) => {
+  const getBlob = (url: string) => new Promise((resolve) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('GET', url, true)
+    xhr.responseType = 'blob'
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        resolve(xhr.response)
+      }
+    }
+    xhr.send()
+  })
+  getBlob(e.url!).then((blob: any) => {
+    const a = document.createElement('a')
+    const url = window.URL.createObjectURL(blob)
+    const event = new MouseEvent('click')
+    a.target = '_blank'
+    a.download = e.name
+    a.href = url
+    a.dispatchEvent(event)
+  })
+}
 </script>
 
 <template>
@@ -68,12 +92,14 @@ const onSuccess: UploadProps['onSuccess'] = (res, file, fileList) => {
     :before-upload="beforeUpload"
     :on-exceed="onExceed"
     :on-success="onSuccess"
+    :on-preview="onPreview"
+    :http-request="httpRequest"
     :file-list="files"
     :limit="max"
     drag
   >
     <div class="slot">
-      <SvgIcon name="i-ep:upload-filled" class="el-icon--upload" />
+      <FaIcon name="i-ep:upload-filled" class="el-icon--upload" />
       <div class="el-upload__text">
         将文件拖到此处，或<em>点击上传</em>
       </div>
@@ -88,7 +114,7 @@ const onSuccess: UploadProps['onSuccess'] = (res, file, fileList) => {
   </ElUpload>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 :deep(.el-upload.is-drag) {
   display: inline-block;
 

@@ -1,7 +1,8 @@
-import { defaultsDeep } from 'lodash-es'
-import type { RouteMeta } from 'vue-router'
 import type { Settings } from '#/global'
+import type { RouteMeta } from 'vue-router'
 import settingsDefault from '@/settings'
+import { merge } from '@/utils/object'
+import { cloneDeep } from 'es-toolkit'
 
 const useSettingsStore = defineStore(
   // 唯一ID
@@ -10,7 +11,6 @@ const useSettingsStore = defineStore(
     const settings = ref(settingsDefault)
 
     const prefersColorScheme = window.matchMedia('(prefers-color-scheme: dark)')
-    const currentColorScheme = ref<Exclude<Settings.app['colorScheme'], ''>>()
     watch(() => settings.value.app.colorScheme, (val) => {
       if (val === '') {
         prefersColorScheme.addEventListener('change', updateTheme)
@@ -21,6 +21,8 @@ const useSettingsStore = defineStore(
     }, {
       immediate: true,
     })
+
+    const currentColorScheme = ref<Exclude<Settings.app['colorScheme'], ''>>()
     watch(() => settings.value.app.colorScheme, updateTheme, {
       immediate: true,
     })
@@ -40,7 +42,31 @@ const useSettingsStore = defineStore(
       }
     }
 
-    watch(() => settings.value.menu.menuMode, (val) => {
+    watch(() => settings.value.app.radius, (val) => {
+      document.documentElement.style.removeProperty('--radius')
+      document.documentElement.style.setProperty('--radius', `${val}rem`)
+    }, {
+      immediate: true,
+    })
+    watch([
+      () => settings.value.app.enableMournMode,
+      () => settings.value.app.enableColorAmblyopiaMode,
+    ], (val) => {
+      document.documentElement.style.removeProperty('filter')
+      if (val[0] && val[1]) {
+        document.documentElement.style.setProperty('filter', 'grayscale(100%) invert(80%)')
+      }
+      else if (val[0]) {
+        document.documentElement.style.setProperty('filter', 'grayscale(100%)')
+      }
+      else if (val[1]) {
+        document.documentElement.style.setProperty('filter', 'invert(80%)')
+      }
+    }, {
+      immediate: true,
+    })
+
+    watch(() => settings.value.menu.mode, (val) => {
       document.body.setAttribute('data-menu-mode', val)
     }, {
       immediate: true,
@@ -59,6 +85,13 @@ const useSettingsStore = defineStore(
       case agent.includes('linux'):
         os.value = 'linux'
         break
+    }
+
+    // 页面是否刷新
+    const isReloading = ref(false)
+    // 切换当前页面是否刷新
+    function setIsReloading(value?: boolean) {
+      isReloading.value = value ?? !isReloading.value
     }
 
     // 页面标题
@@ -119,13 +152,15 @@ const useSettingsStore = defineStore(
 
     // 更新应用配置
     function updateSettings(data: Settings.all, fromBase = false) {
-      settings.value = defaultsDeep(data, fromBase ? settingsDefault : settings.value)
+      settings.value = merge(data, fromBase ? cloneDeep(settingsDefault) : settings.value)
     }
 
     return {
       settings,
       currentColorScheme,
       os,
+      isReloading,
+      setIsReloading,
       title,
       setTitle,
       mode,

@@ -1,6 +1,6 @@
+import type { Tabbar } from '#/global'
 import type { RouteLocationNormalized } from 'vue-router'
 import useKeepAliveStore from './keepAlive'
-import type { Tabbar } from '#/global'
 
 const useTabbarStore = defineStore(
   // 唯一ID
@@ -24,21 +24,15 @@ const useTabbarStore = defineStore(
       if (route.name !== 'reload') {
         // 记录查找到的标签页
         const findTab = list.value.find((item) => {
-          if (item.routeName) {
-            return item.routeName === route.name
-          }
-          else {
-            return item.tabId === tabId
-          }
+          return item.tabId === tabId
         })
         // 新增标签页
         if (!findTab) {
           const listItem = {
             tabId,
             fullPath: route.fullPath,
-            routeName: route.name,
             title: typeof meta?.title === 'function' ? meta.title() : meta?.title,
-            icon: meta?.icon ?? meta?.breadcrumbNeste?.findLast(item => item.icon)?.icon,
+            icon: meta?.icon ?? route.matched?.findLast(item => item.meta?.icon)?.meta?.icon,
             name: names,
           }
           if (leaveIndex.value >= 0) {
@@ -119,7 +113,7 @@ const useTabbarStore = defineStore(
         }
       })
       keepAliveStore.remove(name)
-      list.value = list.value.filter((item, i) => {
+      list.value = list.value.filter((_item, i) => {
         return i >= index
       })
     }
@@ -144,7 +138,7 @@ const useTabbarStore = defineStore(
         }
       })
       keepAliveStore.remove(name)
-      list.value = list.value.filter((item, i) => {
+      list.value = list.value.filter((_item, i) => {
         return i <= index
       })
     }
