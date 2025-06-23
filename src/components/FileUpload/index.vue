@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadProps, UploadUserFile } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import { toast } from 'vue-sonner'
 
 defineOptions({
   name: 'FileUpload',
@@ -35,6 +35,10 @@ const emits = defineEmits<{
     file: UploadUserFile,
     fileList: UploadUserFile[],
   ]
+  onRemove: [
+    file: UploadUserFile,
+    fileList: UploadUserFile[],
+  ]
 }>()
 
 const beforeUpload: UploadProps['beforeUpload'] = (file) => {
@@ -43,20 +47,24 @@ const beforeUpload: UploadProps['beforeUpload'] = (file) => {
   const isTypeOk = props.ext.includes(fileExt)
   const isSizeOk = file.size / 1024 / 1024 < props.size
   if (!isTypeOk) {
-    ElMessage.error(`上传文件只支持 ${props.ext.join(' / ')} 格式！`)
+    toast.error(`上传文件只支持 ${props.ext.join(' / ')} 格式！`)
   }
   if (!isSizeOk) {
-    ElMessage.error(`上传文件大小不能超过 ${props.size}MB！`)
+    toast.error(`上传文件大小不能超过 ${props.size}MB！`)
   }
   return isTypeOk && isSizeOk
 }
 
 const onExceed: UploadProps['onExceed'] = () => {
-  ElMessage.warning('文件上传超过限制')
+  toast.warning('文件上传超过限制')
 }
 
 const onSuccess: UploadProps['onSuccess'] = (res, file, fileList) => {
   emits('onSuccess', res, file, fileList)
+}
+
+const onRemove: UploadProps['onRemove'] = (file, fileList) => {
+  emits('onRemove', file, fileList)
 }
 
 const onPreview: UploadProps['onPreview'] = (e) => {
@@ -92,6 +100,7 @@ const onPreview: UploadProps['onPreview'] = (e) => {
     :before-upload="beforeUpload"
     :on-exceed="onExceed"
     :on-success="onSuccess"
+    :on-remove="onRemove"
     :on-preview="onPreview"
     :http-request="httpRequest"
     :file-list="files"

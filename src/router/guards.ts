@@ -1,9 +1,4 @@
 import type { Router, RouteRecordRaw } from 'vue-router'
-import useKeepAliveStore from '@/store/modules/keepAlive'
-import useMenuStore from '@/store/modules/menu'
-import useRouteStore from '@/store/modules/route'
-import useSettingsStore from '@/store/modules/settings'
-import useUserStore from '@/store/modules/user'
 import { useNProgress } from '@vueuse/integrations/useNProgress'
 import { asyncRoutes, asyncRoutesByFilesystem } from './routes'
 import '@/assets/styles/nprogress.css'
@@ -47,7 +42,7 @@ function setupRoutes(router: Router) {
       }
       else {
         try {
-        // 获取用户权限
+          // 获取用户权限
           settingsStore.settings.app.enablePermission && await userStore.getPermissions()
           // 生成动态路由
           switch (settingsStore.settings.app.routeBaseOn) {
@@ -85,7 +80,9 @@ function setupRoutes(router: Router) {
           }
           routeStore.setCurrentRemoveRoutes(removeRoutes)
         }
-        catch {}
+        catch {
+          userStore.logout()
+        }
         // 动态路由生成并注册后，重新进入当前路由
         next({
           path: to.path,
@@ -106,6 +103,26 @@ function setupRoutes(router: Router) {
       else {
         next()
       }
+    }
+  })
+}
+
+// 当父级路由未配置重定向时，自动重定向到有访问权限的子路由
+function setupRedirectAuthChildrenRoute(router: Router) {
+  router.beforeEach((to, _from, next) => {
+    const { auth } = useAuth()
+    const currentRoute = router.getRoutes().find(route => route.path === (to.matched.at(-1)?.path ?? ''))
+    if (!currentRoute?.redirect) {
+      const findAuthRoute = currentRoute?.children?.find(route => route.meta?.menu !== false && auth(route.meta?.auth ?? ''))
+      if (findAuthRoute) {
+        next(findAuthRoute)
+      }
+      else {
+        next()
+      }
+    }
+    else {
+      next()
     }
   })
 }
@@ -206,6 +223,7 @@ function setupOther(router: Router) {
 
 export default function setupGuards(router: Router) {
   setupRoutes(router)
+  setupRedirectAuthChildrenRoute(router)
   setupProgress(router)
   setupTitle(router)
   setupKeepAlive(router)

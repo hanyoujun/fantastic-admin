@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { useSlots } from '@/slots'
-import useMenuStore from '@/store/modules/menu'
-import useSettingsStore from '@/store/modules/settings'
 import hotkeys from 'hotkeys-js'
+import { useSlots } from '@/slots'
 import Logo from '../Logo/index.vue'
 
 defineOptions({
@@ -40,7 +38,7 @@ onUnmounted(() => {
       <component :is="useSlots('main-sidebar-top')" />
       <Logo :show-title="false" class="sidebar-logo" />
       <component :is="useSlots('main-sidebar-after-logo')" />
-      <FaScrollArea :scrollbar="false" mask gradient-color="var(--g-main-sidebar-bg)" class="menu">
+      <FaScrollArea :scrollbar="false" mask gradient-color="var(--g-main-sidebar-bg)" class="menu flex-1">
         <!-- 侧边栏模式（含主导航） -->
         <div class="w-full flex flex-col of-hidden py-1 transition-all -mt-2">
           <template v-for="(item, index) in menuStore.allMenus" :key="index">
@@ -65,6 +63,10 @@ onUnmounted(() => {
           </template>
         </div>
       </FaScrollArea>
+      <component :is="useSlots('main-sidebar-after-menu')" />
+      <div class="flex-center px-4 py-3">
+        <AccountButton only-avatar :button-variant="settingsStore.settings.menu.mode === 'side' ? 'secondary' : 'ghost'" class="size-12 p-2" />
+      </div>
       <component :is="useSlots('main-sidebar-bottom')" />
     </div>
   </Transition>
@@ -88,8 +90,6 @@ onUnmounted(() => {
   }
 
   .menu {
-    flex: 1;
-
     :deep(.menu-item) {
       .menu-item-container {
         padding-block: 8px;

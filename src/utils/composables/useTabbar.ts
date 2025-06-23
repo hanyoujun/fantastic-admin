@@ -1,5 +1,3 @@
-import type { RouteLocationRaw } from 'vue-router'
-import useTabbarStore from '@/store/modules/tabbar'
 import { toast } from 'vue-sonner'
 
 export default function useTabbar() {
@@ -12,45 +10,17 @@ export default function useTabbar() {
     return route.fullPath
   }
 
-  function open(to: RouteLocationRaw) {
-    const index = tabbarStore.list.findIndex(item => item.tabId === getId())
-    tabbarStore.$patch({
-      leaveIndex: index,
-    })
-    router.push(to)
-  }
-
-  function go(delta: number) {
-    const tabId = getId()
-    router.go(delta)
-    tabbarStore.remove(tabId)
-  }
-
-  function replace(to: RouteLocationRaw) {
-    const tabId = getId()
-    router.replace(to).then(() => {
-      tabbarStore.remove(tabId)
-    })
-  }
-
-  function close(to: RouteLocationRaw) {
-    const tabId = getId()
-    router.push(to).then(() => {
-      tabbarStore.remove(tabId)
-    })
-  }
-
   function closeById(tabId = getId()) {
     if (checkClose(tabId, false)) {
       const activedTabId = getId()
       // 如果关闭的标签正好是当前路由
       if (tabId === activedTabId) {
         const index = tabbarStore.list.findIndex(item => item.tabId === tabId)
-        if (index < tabbarStore.list.length - 1) {
-          close(tabbarStore.list[index + 1].fullPath)
+        if (index > 0) {
+          router.close(tabbarStore.list[index - 1].fullPath)
         }
         else {
-          close(tabbarStore.list[index - 1].fullPath)
+          router.close(tabbarStore.list[index + 1].fullPath)
         }
       }
       else {
@@ -170,9 +140,6 @@ export default function useTabbar() {
 
   return {
     getId,
-    open,
-    go,
-    replace,
     close,
     closeById,
     closeOtherSide,

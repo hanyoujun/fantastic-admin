@@ -1,8 +1,7 @@
 import type { Tabbar } from '#/global'
 import type { RouteLocationNormalized } from 'vue-router'
-import useKeepAliveStore from './keepAlive'
 
-const useTabbarStore = defineStore(
+export const useTabbarStore = defineStore(
   // 唯一ID
   'tabbar',
   () => {
@@ -12,7 +11,7 @@ const useTabbarStore = defineStore(
     const leaveIndex = ref(-1)
 
     // 添加标签页
-    async function add(route: RouteLocationNormalized) {
+    function add(route: RouteLocationNormalized) {
       const names: string[] = []
       route.matched.forEach((v, i) => {
         if (i > 0) {
@@ -159,5 +158,3 @@ const useTabbarStore = defineStore(
     }
   },
 )
-
-export default useTabbarStore

@@ -1,12 +1,11 @@
 import type { Route } from '#/global'
 import type { RouteRecordRaw, RouterMatcher } from 'vue-router'
-import apiApp from '@/api/modules/app'
-import { systemRoutes as systemRoutesRaw } from '@/router/routes'
 import { cloneDeep } from 'es-toolkit'
 import { createRouterMatcher } from 'vue-router'
-import useSettingsStore from './settings'
+import apiApp from '@/api/modules/app'
+import { systemRoutes as systemRoutesRaw } from '@/router/routes'
 
-const useRouteStore = defineStore(
+export const useRouteStore = defineStore(
   // 唯一ID
   'route',
   () => {
@@ -131,7 +130,7 @@ const useRouteStore = defineStore(
         })
         routesMatcher.value = createRouterMatcher(routes, {})
         isGenerate.value = true
-      }).catch(() => {})
+      })
     }
     // 生成路由（文件系统生成）
     function generateRoutesAtFilesystem(asyncRoutes: RouteRecordRaw[]) {
@@ -169,5 +168,3 @@ const useRouteStore = defineStore(
     }
   },
 )
-
-export default useRouteStore

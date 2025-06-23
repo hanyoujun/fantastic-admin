@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import type { Tabbar } from '#/global'
-import { useSlots } from '@/slots'
-import useSettingsStore from '@/store/modules/settings'
-import useTabbarStore from '@/store/modules/tabbar'
 import { useMagicKeys } from '@vueuse/core'
 import hotkeys from 'hotkeys-js'
 import { toast } from 'vue-sonner'
+import { useSlots } from '@/slots'
 
 defineOptions({
   name: 'Tabbar',
@@ -30,10 +28,20 @@ const tabRef = useTemplateRef<HTMLElement[]>('tabRef')
 
 watch(() => route, (val) => {
   if (settingsStore.settings.tabbar.enable) {
-    tabbarStore.add(val).then(() => {
+    tabbarStore.add(val)
+    nextTick(() => {
       const index = tabbarStore.list.findIndex(item => item.tabId === activedTabId.value)
       if (index !== -1) {
-        tabRef.value && tabsRef.value?.scrollTo(tabRef.value[index].offsetLeft - tabsRef.value.ref?.$el.clientWidth * 0.4)
+        const tabEl = tabRef.value?.find(item => Number.parseInt(item.dataset.index!) === index)
+        const containerEl = tabsRef.value?.ref?.$el
+        if (tabEl && containerEl) {
+          const tabLeft = tabEl.offsetLeft
+          const tabWidth = tabEl.offsetWidth
+          const containerWidth = containerEl.clientWidth
+          // 计算滚动位置，使标签页居中
+          const scrollLeft = tabLeft - (containerWidth - tabWidth) / 2
+          tabsRef.value?.scrollTo(scrollLeft)
+        }
         tabbarScrollTip()
       }
     })
@@ -147,7 +155,7 @@ onUnmounted(() => {
   <div class="tabbar">
     <component :is="useSlots('tabbar-start')" />
     <div class="tabbar-container">
-      <FaScrollArea ref="tabsRef" horizontal :scrollbar="false" mask gradient-color="var(--g-tabbar-bg)" class="tabs">
+      <FaScrollArea ref="tabsRef" :scrollbar="false" mask horizontal gradient-color="var(--g-tabbar-bg)" class="tabs">
         <TransitionGroup ref="tabContainerRef" name="tabbar" tag="div" class="tab-container">
           <div
             v-for="(element, index) in tabbarStore.list" :key="element.tabId"

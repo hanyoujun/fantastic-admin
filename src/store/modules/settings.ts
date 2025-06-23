@@ -1,10 +1,10 @@
 import type { Settings } from '#/global'
 import type { RouteMeta } from 'vue-router'
+import { cloneDeep } from 'es-toolkit'
 import settingsDefault from '@/settings'
 import { merge } from '@/utils/object'
-import { cloneDeep } from 'es-toolkit'
 
-const useSettingsStore = defineStore(
+export const useSettingsStore = defineStore(
   // 唯一ID
   'settings',
   () => {
@@ -172,5 +172,3 @@ const useSettingsStore = defineStore(
     }
   },
 )
-
-export default useSettingsStore

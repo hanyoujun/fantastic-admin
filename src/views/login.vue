@@ -10,7 +10,6 @@ import LoginForm from '@/components/AccountForm/LoginForm.vue'
 import RegisterForm from '@/components/AccountForm/RegisterForm.vue'
 import ResetPasswordForm from '@/components/AccountForm/ResetPasswordForm.vue'
 import ColorScheme from '@/layouts/components/Topbar/Toolbar/ColorScheme/index.vue'
-import useSettingsStore from '@/store/modules/settings'
 
 defineOptions({
   name: 'Login',
@@ -60,7 +59,7 @@ const formType = ref<'login' | 'register' | 'resetPassword'>('login')
       </Transition>
     </div>
   </div>
-  <FaCopyright />
+  <FaCopyright class="copyright" />
 </template>
 
 <style scoped>

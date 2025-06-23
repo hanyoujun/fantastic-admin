@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { ScrollAreaRootProps } from 'radix-vue'
+import type { ScrollAreaRootProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
-import { cn } from '@/utils'
 import {
   ScrollAreaCorner,
   ScrollAreaRoot,
-
   ScrollAreaViewport,
-} from 'radix-vue'
+} from 'reka-ui'
 import { computed } from 'vue'
+import { cn } from '@/utils'
 import ScrollBar from './ScrollBar.vue'
 
 const props = defineProps<ScrollAreaRootProps & {
   class?: HTMLAttributes['class']
   scrollbar?: boolean
+  onScroll?: (event: Event) => void
   onWheel?: (event: WheelEvent) => void
 }>()
 
@@ -32,7 +32,7 @@ defineExpose({
 
 <template>
   <ScrollAreaRoot v-bind="delegatedProps" :class="cn('relative overflow-hidden', props.class)">
-    <ScrollAreaViewport ref="viewportRef" class="scroll-area-viewport h-full w-full rounded-[inherit]" @wheel.prevent="onWheel">
+    <ScrollAreaViewport ref="viewportRef" class="scroll-area-viewport h-full w-full overscroll-contain rounded-[inherit]" @scroll="onScroll" @wheel="onWheel">
       <slot />
     </ScrollAreaViewport>
     <ScrollBar :class="{ 'opacity-0 pointer-events-none': !props.scrollbar }" />

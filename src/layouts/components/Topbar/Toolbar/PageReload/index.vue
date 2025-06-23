@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import useSettingsStore from '@/store/modules/settings'
 import hotkeys from 'hotkeys-js'
 
 defineOptions({
@@ -41,7 +40,7 @@ function handleCtrlClick() {
         <p>可切换为浏览器原生刷新</p>
       </div>
     </template>
-    <FaButton variant="ghost" size="icon" @click.exact="handleClick" @click.ctrl.exact="handleCtrlClick" @animationend="isAnimating = false">
+    <FaButton variant="ghost" size="icon" class="size-9" @click.exact="handleClick" @click.ctrl.exact="handleCtrlClick" @animationend="isAnimating = false">
       <FaIcon name="i-iconoir:refresh-double" class="size-4" :class="{ animation: isAnimating }" />
     </FaButton>
   </FaTooltip>

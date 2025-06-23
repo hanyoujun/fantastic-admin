@@ -1,6 +1,5 @@
 import type { Route } from '#/global'
 import type { RouteRecordRaw } from 'vue-router'
-import useSettingsStore from '@/store/modules/settings'
 import generatedRoutes from 'virtual:generated-pages'
 import { setupLayouts } from 'virtual:meta-layouts'
 import MultilevelMenuExample from './modules/multilevel.menu.example'

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import settingsDefault from '@/settings.default'
-import useMenuStore from '@/store/modules/menu'
-import useSettingsStore from '@/store/modules/settings'
-import eventBus from '@/utils/eventBus'
-import { diffTwoObj } from '@/utils/object'
 import { useClipboard } from '@vueuse/core'
 import { toast } from 'vue-sonner'
+import settingsDefault from '@/settings.default'
+import eventBus from '@/utils/eventBus'
+import { diffTwoObj } from '@/utils/object'
 
 defineOptions({
   name: 'AppSetting',
@@ -17,6 +15,15 @@ const settingsStore = useSettingsStore()
 const menuStore = useMenuStore()
 
 const isShow = ref(false)
+
+const appRadius = computed<number[]>({
+  get() {
+    return [settingsStore.settings.app.radius]
+  },
+  set(value) {
+    settingsStore.settings.app.radius = value[0]
+  },
+})
 
 watch(() => settingsStore.settings.menu.mode, (value) => {
   if (value === 'single') {
@@ -49,7 +56,7 @@ function handleCopy() {
 </script>
 
 <template>
-  <FaDrawer v-model="isShow" title="应用配置" description="在生产环境中应关闭该模块" :footer="isSupported">
+  <FaDrawer v-model="isShow" title="应用配置" description="在生产环境中应关闭该模块" :footer="isSupported" :destroy-on-close="false" content-class="sm:min-w-md">
     <div class="rounded-2 bg-rose/20 px-4 py-2 text-sm/6 c-rose">
       应用配置可实时预览效果，但只是临时生效，要想真正应用于项目，可以点击下方的「复制配置」按钮，并将配置粘贴到 src/settings.ts 文件中。
     </div>
@@ -70,19 +77,7 @@ function handleCopy() {
         <div class="label">
           圆角系数
         </div>
-        <div class="flex-center-start gap-1">
-          <FaButton
-            v-for="(item, index) in [
-              { label: 0, value: 0 },
-              { label: 0.25, value: 0.25 },
-              { label: 0.5, value: 0.5 },
-              { label: 0.75, value: 0.75 },
-              { label: 1, value: 1 },
-            ]" :key="index" :variant="settingsStore.settings.app.radius === item.value ? 'default' : 'outline'" size="sm" class="w-12" @click="settingsStore.settings.app.radius = (item.value as any)"
-          >
-            {{ item.label }}
-          </FaButton>
-        </div>
+        <FaSlider v-model="appRadius" :min="0" :max="1" :step="0.25" class="w-1/2" />
       </div>
     </div>
     <div v-if="settingsStore.mode === 'pc'">
@@ -196,11 +191,17 @@ function handleCopy() {
     </div>
     <div>
       <FaDivider>工具栏</FaDivider>
+      <div class="setting-item">
+        <div class="label">
+          是否启用
+        </div>
+        <FaSwitch v-model="settingsStore.settings.toolbar.enable" />
+      </div>
       <div v-if="settingsStore.mode === 'pc'" class="setting-item">
         <div class="label">
           面包屑导航
         </div>
-        <FaSwitch v-model="settingsStore.settings.toolbar.breadcrumb" />
+        <FaSwitch v-model="settingsStore.settings.toolbar.breadcrumb" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
       <div class="setting-item">
         <div class="label">
@@ -209,13 +210,13 @@ function handleCopy() {
             <FaIcon name="i-ri:question-line" />
           </FaTooltip>
         </div>
-        <FaSwitch v-model="settingsStore.settings.toolbar.navSearch" />
+        <FaSwitch v-model="settingsStore.settings.toolbar.navSearch" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
       <div v-if="settingsStore.mode === 'pc'" class="setting-item">
         <div class="label">
           全屏
         </div>
-        <FaSwitch v-model="settingsStore.settings.toolbar.fullscreen" />
+        <FaSwitch v-model="settingsStore.settings.toolbar.fullscreen" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
       <div class="setting-item">
         <div class="label">
@@ -224,7 +225,7 @@ function handleCopy() {
             <FaIcon name="i-ri:question-line" />
           </FaTooltip>
         </div>
-        <FaSwitch v-model="settingsStore.settings.toolbar.pageReload" />
+        <FaSwitch v-model="settingsStore.settings.toolbar.pageReload" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
       <div class="setting-item">
         <div class="label">
@@ -233,7 +234,7 @@ function handleCopy() {
             <FaIcon name="i-ri:question-line" />
           </FaTooltip>
         </div>
-        <FaSwitch v-model="settingsStore.settings.toolbar.colorScheme" />
+        <FaSwitch v-model="settingsStore.settings.toolbar.colorScheme" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
     </div>
     <div>
@@ -242,7 +243,7 @@ function handleCopy() {
         <div class="label">
           是否启用快捷键
         </div>
-        <FaSwitch v-model="settingsStore.settings.mainPage.enableHotkeys" />
+        <FaSwitch v-model="settingsStore.settings.mainPage.enableHotkeys" :disabled="!settingsStore.settings.toolbar.enable" />
       </div>
     </div>
     <div>

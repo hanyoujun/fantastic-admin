@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ModalEmits, ModalProps } from '.'
+import { VisuallyHidden } from 'reka-ui'
 import { cn } from '@/utils'
-import { VisuallyHidden } from 'radix-vue'
 import {
   Dialog,
   DialogContent,
@@ -40,6 +40,7 @@ const props = withDefaults(
     footer: true,
     closeOnClickOverlay: true,
     closeOnPressEscape: true,
+    destroyOnClose: true,
   },
 )
 
@@ -60,15 +61,27 @@ defineExpose({
   areaRef: dialogAreaRef,
 })
 
-const id = useId()
-provide('ModalId', id)
-
+const modalId = useId()
 const isOpen = ref(props.modelValue)
 const isMaximize = ref(props.maximize)
 
 watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
+
+const hasOpened = ref(false)
+const isClosed = ref(true)
+
+watch(() => isOpen.value, (value) => {
+  isClosed.value = false
+  if (value && !hasOpened.value) {
+    hasOpened.value = true
+  }
+}, {
+  immediate: true,
+})
+
+const forceMount = computed(() => !props.destroyOnClose && hasOpened.value)
 
 const { isDragging, transform } = useDraggable(
   dialogRef,
@@ -85,6 +98,7 @@ function setTransform() {
 }
 
 watch(isOpen, (val) => {
+  emits('update:modelValue', val)
   if (val) {
     nextTick(() => {
       if (dialogContentRef.value) {
@@ -92,28 +106,69 @@ watch(isOpen, (val) => {
         setTransform()
       }
     })
-  }
-})
-
-function updateOpen(value: boolean) {
-  isOpen.value = value
-  emits('update:modelValue', value)
-  if (value) {
     emits('open')
   }
   else {
     emits('close')
   }
+})
+
+async function updateOpen(value: boolean) {
+  if (value) {
+    isOpen.value = value
+    emits('open')
+  }
+  else {
+    if (props.beforeClose) {
+      await props.beforeClose(
+        'close',
+        () => {
+          isOpen.value = value
+          emits('close')
+        },
+      )
+    }
+    else {
+      isOpen.value = value
+      emits('close')
+    }
+  }
 }
 
-function onConfirm() {
-  updateOpen(false)
-  emits('confirm')
+const isConfirmButtonLoading = ref(false)
+
+async function onConfirm() {
+  if (props.beforeClose) {
+    isConfirmButtonLoading.value = true
+    await props.beforeClose(
+      'confirm',
+      () => {
+        isOpen.value = false
+        emits('confirm')
+      },
+    )
+    isConfirmButtonLoading.value = false
+  }
+  else {
+    isOpen.value = false
+    emits('confirm')
+  }
 }
 
-function onCancel() {
-  updateOpen(false)
-  emits('cancel')
+async function onCancel() {
+  if (props.beforeClose) {
+    await props.beforeClose(
+      'cancel',
+      () => {
+        isOpen.value = false
+        emits('cancel')
+      },
+    )
+  }
+  else {
+    isOpen.value = false
+    emits('cancel')
+  }
 }
 
 function handleFocusOutside(e: Event) {
@@ -122,7 +177,7 @@ function handleFocusOutside(e: Event) {
 }
 
 function handleClickOutside(e: Event) {
-  if (!props.closeOnClickOverlay || (e.target as HTMLElement).dataset.modalId !== id) {
+  if (!props.closeOnClickOverlay || (e.target as HTMLElement).dataset.modalId !== modalId) {
     e.preventDefault()
     e.stopPropagation()
   }
@@ -146,6 +201,7 @@ function handleAnimationEnd() {
   }
   else {
     emits('closed')
+    isClosed.value = true
   }
 }
 </script>
@@ -154,16 +210,19 @@ function handleAnimationEnd() {
   <Dialog :modal="false" :open="isOpen" @update:open="updateOpen">
     <DialogContent
       ref="dialogContentRef"
+      :modal-id="modalId"
       :open="isOpen"
       :closable="props.closable"
       :overlay="props.overlay"
       :overlay-blur="props.overlayBlur"
       :maximize="isMaximize"
       :maximizable="props.maximizable"
+      :force-mount="forceMount"
       :class="cn('left-0 right-0 top-0 md:top-[5vh] flex flex-col p-0 gap-0 mx-auto h-[calc-size(auto,size)] min-h-full md:min-h-auto max-h-full md:max-h-[90vh] translate-x-0 translate-y-0', props.class, {
         'md:top-0 size-full max-w-full max-h-full md:max-h-full': isMaximize,
         'md:top-1/2 md:-translate-y-1/2!': props.alignCenter,
         'duration-0': isDragging,
+        'hidden': isClosed,
       })"
       @open-auto-focus="handleFocusOutside"
       @close-auto-focus="handleFocusOutside"
@@ -224,7 +283,7 @@ function handleAnimationEnd() {
           <FaButton v-if="showCancelButton" variant="outline" @click="onCancel">
             {{ cancelButtonText }}
           </FaButton>
-          <FaButton v-if="showConfirmButton" @click="onConfirm">
+          <FaButton v-if="showConfirmButton" :disabled="confirmButtonDisabled" :loading="confirmButtonLoading || isConfirmButtonLoading" @click="onConfirm">
             {{ confirmButtonText }}
           </FaButton>
         </slot>

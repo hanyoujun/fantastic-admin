@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { DialogContentEmits, DialogContentProps } from 'radix-vue'
+import type { DialogContentEmits, DialogContentProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
 import type { SheetVariants } from '.'
-import { cn } from '@/utils'
 import { useScrollLock } from '@vueuse/core'
 import { X } from 'lucide-vue-next'
 import {
@@ -10,8 +9,9 @@ import {
   DialogContent,
   DialogPortal,
   useForwardPropsEmits,
-} from 'radix-vue'
+} from 'reka-ui'
 import { computed } from 'vue'
+import { cn } from '@/utils'
 import { sheetVariants } from '.'
 
 interface SheetContentProps extends DialogContentProps {

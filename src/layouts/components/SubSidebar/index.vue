@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { useSlots } from '@/slots'
-import useMenuStore from '@/store/modules/menu'
-import useSettingsStore from '@/store/modules/settings'
 import Logo from '../Logo/index.vue'
 import Menu from '../Menu/index.vue'
 
@@ -62,7 +60,7 @@ watch(() => menuStore.actived, (val, oldVal) => {
             <div v-show="mainIndex === menuStore.actived">
               <Menu
                 :menu="mainItem.children" :value="route.meta.activeMenu || route.path" :default-openeds="menuStore.defaultOpenedPaths" :accordion="settingsStore.settings.menu.subMenuUniqueOpened" :collapse="settingsStore.mode === 'pc' && settingsStore.settings.menu.subMenuCollapse" class="menu" :class="{
-                  '-mt-2': !['head', 'single'].includes(settingsStore.settings.menu.mode),
+                  '-mt-2': !((settingsStore.mode === 'pc' && settingsStore.settings.menu.subMenuCollapse) || ['head', 'single'].includes(settingsStore.settings.menu.mode)),
                 }"
               />
             </div>
@@ -73,6 +71,10 @@ watch(() => menuStore.actived, (val, oldVal) => {
         <FaButton v-show="settingsStore.settings.menu.enableSubMenuCollapseButton" variant="secondary" size="icon" class="h-8 w-8 transition" :class="{ '-rotate-z-180': settingsStore.settings.menu.subMenuCollapse }" @click="settingsStore.toggleSidebarCollapse()">
           <FaIcon name="toolbar-collapse" class="size-4" />
         </FaButton>
+      </div>
+      <component :is="useSlots('sub-sidebar-after-menu')" />
+      <div v-if="settingsStore.settings.menu.mode === 'single'" class="flex-center px-4 pb-3">
+        <AccountButton :only-avatar="settingsStore.settings.menu.subMenuCollapse" dropdown-align="center" :dropdown-side="settingsStore.settings.menu.subMenuCollapse ? 'right' : 'top'" button-variant="secondary" :class="{ 'w-full': !settingsStore.settings.menu.subMenuCollapse }" />
       </div>
       <component :is="useSlots('sub-sidebar-bottom')" />
     </div>

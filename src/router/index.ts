@@ -1,8 +1,7 @@
-import pinia from '@/store'
-import useSettingsStore from '@/store/modules/settings'
 import { loadingFadeOut } from 'virtual:app-loading'
-
 import { createRouter, createWebHashHistory } from 'vue-router'
+import pinia from '@/store'
+import setupExtensions from './extensions'
 import setupGuards from './guards'
 // 路由相关数据
 import { constantRoutes, constantRoutesByFilesystem } from './routes'
@@ -13,6 +12,7 @@ const router = createRouter({
 })
 
 setupGuards(router)
+setupExtensions(router)
 
 router.isReady().then(() => {
   loadingFadeOut()
